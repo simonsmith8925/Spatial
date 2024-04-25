@@ -1,0 +1,23 @@
+library("adehabitatHR")
+library("maptools")
+library("terra")
+library("rgdal")
+library("sf")
+library("sp")
+data <- read.csv("state.csv",row.names=1,header = T)
+data = data[data$state == "Forage",]
+data = data[,c(2,7,8)]
+df = na.omit(data)
+df = df[df$X != 0,]
+coordinates(df) = c("X", "Y")
+ud <- kernelUD(df[,1],grid = 600, h="href", extent = 5)
+ver <- getverticeshr(ud, percent=50)
+write.table(ver,"k2.csv",row.names=TRUE,col.names=TRUE,sep=",")
+plasot(ver)
+writePolyShape(ver, "hrsp2")
+
+##-------------------overlap--------------------####
+spdata <- SpatialPointsDataFrame(coords = cbind(data$X, data$Y),
+                                 data = subset(data, select = -c(X,Y)))
+overlap = kerneloverlap(spdata, method = "HR", percent = 95,grid=600)
+overlap
